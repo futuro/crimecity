@@ -94,7 +94,8 @@ function parseCrimeData(error, data) {
     });
     Object.keys(possibleCrimes).forEach(function(key){generateScales(possibleCrimes[key])});
 }
-d3.csv("mplscrimestats-year_to_date_sep2014.csv", function(error, data) {parseCrimeData(error, data)});
+// This data file is currently only for minneapolis
+d3.csv("data/ytd_sep_2014.csv", function(error, data) {parseCrimeData(error, data)});
 
 // Set the luminosity of 'color' to 0.5 for accurate representation
 function normalizeColors(color) {
