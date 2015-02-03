@@ -2106,7 +2106,7 @@
 
 				var datasetObject = {
 					label : dataset.label || null,
-					fillColor : dataset.fillColor,
+					fillColor : dataset.fillColor[datasetIndex],
 					strokeColor : dataset.strokeColor,
 					bars : []
 				};
@@ -2120,8 +2120,8 @@
 						label : data.labels[index],
 						datasetLabel: dataset.label,
 						strokeColor : dataset.strokeColor,
-						fillColor : dataset.fillColor,
-						highlightFill : dataset.highlightFill || dataset.fillColor,
+						fillColor : dataset.fillColor[index],
+						highlightFill : dataset.highlightFill || dataset.fillColor[index],
 						highlightStroke : dataset.highlightStroke || dataset.strokeColor
 					}));
 				},this);
