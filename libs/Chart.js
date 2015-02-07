@@ -272,6 +272,15 @@
 
 			return ChartElement;
 		},
+		isArray = helpers.isArray = Array.isArray || function(potentialArray){
+			// Array.isArray is the only 'correct' solution, but not all browsers will have this,
+			// so here's a shim. Influenced by underscore.js
+			return potentialArray.constructor === 'Array';
+		},
+		nthOrIdentity = helpers.nthOrIdentity = function(potentialArray, nthIndex){
+			// Return the nth item if potentialArray is an array, else return potentialArray
+			return isArray(potentialArray) ? potentialArray[nthIndex] : potentialArray;
+		},
 		noop = helpers.noop = function(){},
 		uid = helpers.uid = (function(){
 			var id=0;
@@ -825,7 +834,7 @@
 		},
 		stop : function(){
 			// Stops any current animation loop occuring
-			helpers.cancelAnimFrame.call(root, this.animationFrame);
+			helpers.cancelAnimFrame.call(window, this.animationFrame);
 			return this;
 		},
 		resize : function(callback){
@@ -2106,8 +2115,8 @@
 
 				var datasetObject = {
 					label : dataset.label || null,
-					fillColor : dataset.fillColor[datasetIndex],
-					strokeColor : dataset.strokeColor,
+					fillColor : helpers.nthOrIdentity(dataset.fillColor, datasetIndex),
+					strokeColor : helpers.nthOrIdentity(dataset.strokeColor, datasetIndex),
 					bars : []
 				};
 
@@ -2119,10 +2128,10 @@
 						value : dataPoint,
 						label : data.labels[index],
 						datasetLabel: dataset.label,
-						strokeColor : dataset.strokeColor,
-						fillColor : dataset.fillColor[index],
-						highlightFill : dataset.highlightFill || dataset.fillColor[index],
-						highlightStroke : dataset.highlightStroke || dataset.strokeColor
+						strokeColor : helpers.nthOrIdentity(dataset.strokeColor, index),
+						fillColor : helpers.nthOrIdentity(dataset.fillColor, index),
+						highlightFill : helpers.nthOrIdentity((dataset.highlightFill || dataset.fillColor), index),
+						highlightStroke : helpers.nthOrIdentity((dataset.highlightStroke || dataset.strokeColor), index),
 					}));
 				},this);
 
@@ -2416,12 +2425,12 @@
 			}
 		},
 		calculateCircumference : function(value){
-			return (Math.PI*2)*(value / this.total);
+			return (Math.PI*2)*(Math.abs(value) / this.total);
 		},
 		calculateTotal : function(data){
 			this.total = 0;
 			helpers.each(data,function(segment){
-				this.total += segment.value;
+				this.total += Math.abs(segment.value);
 			},this);
 		},
 		update : function(){
@@ -3061,6 +3070,8 @@
 			helpers.each(this.segments,function(segment){
 				segment.save();
 			});
+			
+			this.reflow();
 			this.render();
 		},
 		reflow : function(){
