@@ -123,6 +123,7 @@ function getDesiredCrimeName(name, crimeType) {
         crimeType;
 }
 
+// Scale the color based on the relative amount of a particular crime in this neighborhood
 function scaleColor(crimetype, color, name){
     if (selectedCrimeType == 'primaryCrime' || selectedCrimeType == 'secondaryCrime') {
         return color;
@@ -132,9 +133,10 @@ function scaleColor(crimetype, color, name){
 
     return d3.hsl(color.h, color.s, scale(crimeNum));
 }
-function getColor(crimetype, name) {
-    var color =
-        crimetype == "Homicide"   ? colors[0] :
+
+// Retrieve the HSL color object based on the short form for the crime type
+function getColor(crimetype) {
+    return crimetype == "Homicide"   ? colors[0] :
         crimetype == "Rape"       ? colors[1] :
         crimetype == "Robbery"    ? colors[2] :
         crimetype == "AggAssault" ? colors[3] :
@@ -143,18 +145,25 @@ function getColor(crimetype, name) {
         crimetype == "AutoTheft"  ? colors[6] :
         crimetype == "Arson"      ? colors[7] :
         colors[8];
-    return scaleColor(crimetype, color, name);
 }
 
+// Get the color object and scale it based on the relative amount of crime for that hood
+function getAndScaleColor(crimetype, name) {
+    return scaleColor(crimetype, getColor(crimetype), name);
+}
+
+// Since the primary crime type is brown, grey dashes don't look that great, so use white instead
+// This function isn't that useful if the primary crime type stops being brown
 function getDashColors() {
     return selectedCrimeType == 'primaryCrime' ? 'white' : 'grey'
 }
 
+// Define the style for the neighborhood objects
 function style(feature) {
     var neighborhood = feature.properties.name;
     var crimename = getDesiredCrimeName(neighborhood, selectedCrimeType);
     return {
-        fillColor: getColor(crimename, neighborhood),
+        fillColor: getAndScaleColor(crimename, neighborhood),
         weight: 2,
         opacity: 1,
         color: getDashColors(),
