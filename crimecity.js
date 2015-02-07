@@ -12,6 +12,8 @@ var possibleCrimes = {
     "Robbery"            : "Robbery",
     "Total"              : "Total",
 };
+// These exist for easy filtering with _.omit
+var metaCrimes = ['Total', 'primaryCrime', 'secondaryCrime', 'Primary Crime', 'Secondary Crime'];
 var selectedCrimeType = 'primaryCrime';
 var crimeScales = {};
 var crimehash = {};
@@ -170,6 +172,57 @@ function style(feature) {
         dashArray: '3',
         fillOpacity: 0.7
     };
+}
+
+// data should be of the form { <crime_name> : { max : <int>, min : <int> }, ...}
+// I actually need to stack the colors with the data
+function createDataSets(crimeranges) {
+    var datasets = [],
+        fillcolors = [],
+        highlightFillcolors = ["black", "red", "yellow", "green",
+                                "blue", "orange", "gainsboro", "LawnGreen"],
+        strokecolors = [],
+        highlightStrokecolors = _.shuffle(highlightFillcolors),
+        crimestats = [];
+    // Filter out meta-crimes
+    crimeranges = _.omit(crimeranges,metaCrimes);
+
+    _.each(crimeranges, function(value, key, list){
+            fillcolors.push(getColor(key));
+            crimestats.push(value.max);
+        });
+    strokecolors = _.shuffle(fillcolors);
+
+    datasets.push({
+        fillColor: fillcolors,
+        strokeColor: strokecolors,
+        highlightFill: highlightFillcolors,
+        highlightStroke: highlightStrokecolors,
+        data: crimestats,
+    })
+    return datasets;
+}
+
+// This should be passed a data object, I suppose
+// XXX: Maybe this should show the totals for the city when no neighborhood is clicked?
+function createCharts(minmaxdata) {
+    // Make sure new charts are responsive
+    Chart.defaults.global.responsive = true;
+    //Chart.defaults.Bar.barShowStroke = false;
+    var bcContext = document.getElementById("barchart").getContext("2d"),
+        lcContext = document.getElementById("linechart").getContext("2d"),
+        months = ["January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"],
+        crimes = _.keys(_.omit(possibleCrimes, metaCrimes));
+
+    var barData = {
+        labels: crimes,
+        datasets: createDataSets(minmaxdata)
+    }
+
+    window.barChart = new Chart(bcContext).Bar(barData);
+    //window.lineChart = new Chart(lcContext).Line(lineData, options);
+
 }
 
 function createMap() {
@@ -353,6 +406,9 @@ function createMap() {
 
     $.getJSON('mpls.nbhoods.json')
         .done(addTopoData);
+
+    // Create the initial chart with an overview
+    createCharts(crimeRanges);
 }
 // Make sure that the DOM is available, then do map related stuff
 $( document ).ready(createMap);
