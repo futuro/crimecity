@@ -19,11 +19,10 @@ var crimeScales = {};
 var crimehash = {};
 var crimeRanges = {};
 
-Object.keys(possibleCrimes).forEach(function(key){
-    if (key !== 'Primary Crime' && key !== 'Secondary Crime'){
-        crimeRanges[possibleCrimes[key]]=[]
-    }
+_.chain(possibleCrimes).omit(["Primary Crime","Secondary Crime"]).values().each(function(value){
+    crimeRanges[value]=[]
 });
+
 function generateScales(name, min, max) {
     crimeScales[name] = d3.scale.linear().domain([min,max]).range([1,0]);
 }
