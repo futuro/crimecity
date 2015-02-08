@@ -13,7 +13,7 @@ var possibleCrimes = {
     "Total"              : "Total",
 };
 // These exist for easy filtering with _.omit
-var metaCrimes = ['Total', 'primaryCrime', 'secondaryCrime', 'Primary Crime', 'Secondary Crime'];
+var crimeFilter = ['NEIGHBORHOOD', 'Total', 'primaryCrime', 'secondaryCrime', 'Primary Crime', 'Secondary Crime'];
 var selectedCrimeType = 'primaryCrime';
 var crimeScales = {};
 var crimehash = {};
@@ -24,12 +24,8 @@ Object.keys(possibleCrimes).forEach(function(key){
         crimeRanges[possibleCrimes[key]]=[]
     }
 });
-function generateScales(name) {
-    if (name !== 'primaryCrime' && name !== 'secondaryCrime'){
-        var min = crimeRanges[name].min;
-        var max = crimeRanges[name].max;
-        crimeScales[name] = d3.scale.linear().domain([min,max]).range([1,0]);
-    }
+function generateScales(name, min, max) {
+    crimeScales[name] = d3.scale.linear().domain([min,max]).range([1,0]);
 }
 
 // XXX: d.csv is async, so putting this at the top of the file is only hoping
@@ -42,59 +38,46 @@ function parseCrimeData(error, data) {
     if (error) {return console.error(error);}
 
     data.forEach(function(dataObj){
-        Object.keys(dataObj).forEach(function(key) {
-            if (key !== "NEIGHBORHOOD") {
-                // Turn the crime count into an int
-                dataObj[key] = +dataObj[key];
+        _.each(_.keys(_.omit(dataObj, 'NEIGHBORHOOD')), function(key){
+            // Turn the crime count into an int
+            dataObj[key] = +dataObj[key];
 
-                // Swap these lines if you want DTW to be left out of the crime ranges
-                // This is pretty heavy handed outlier handling and we should probably find a better solution
-                // We should contemplate what "outlier" means in the context of the goal of this project.
-                // We could easily just chuck the top three numbers for the ranges...
-                // We could also just have the top three hoods be black,
-                // but even that is kind of heavy handed
-                //if (key !== 'Primary Crime' && dataObj.NEIGHBORHOOD !== 'DOWNTOWN WEST'){
-                if (key !== 'Primary Crime'){
-                    crimeRanges[key].push(dataObj[key]);
-                }
-                // Find the crime with the highest count
-                if ( key !== "Total" ) {
-                    if (typeof(dataObj.primaryCrime) === "undefined") {
-                        dataObj.primaryCrime = key;
-                    }
-                    else if (dataObj[key] > dataObj[dataObj.primaryCrime]) {
-                        dataObj.primaryCrime = key;
-                    }
+            // Swap these lines if you want DTW to be left out of the crime ranges
+            // This is pretty heavy handed outlier handling and we should probably find a better solution
+            // We should contemplate what "outlier" means in the context of the goal of this project.
+            // We could easily just chuck the top three numbers for the ranges...
+            // We could also just have the top three hoods be black,
+            // but even that is kind of heavy handed
+            //if (key !== 'Primary Crime' && dataObj.NEIGHBORHOOD !== 'DOWNTOWN WEST'){
+            if (key !== 'Primary Crime' && key !== 'Secondary Crime'){
+                crimeRanges[key].push(dataObj[key]);
+            }
+            // Find the crime with the highest count
+            if ( key !== "Total" ) {
+                if (dataObj[key] > (dataObj[dataObj.primaryCrime] || -Infinity)) {
+                    dataObj.primaryCrime = key;
                 }
             }
         });
 
-        Object.keys(dataObj).forEach(function(key) {
-            if (key !== "NEIGHBORHOOD") {
-                //Find the crime with the second highest count
-                if (key !== "Total" && key !== 'Primary Crime' && key !== dataObj.primaryCrime){
-                    if (typeof(dataObj.secondaryCrime) === "undefined") {
-                        dataObj.secondaryCrime = key;
-                    }
-                    else if (dataObj[key] > dataObj[dataObj.secondaryCrime]) {
-                        dataObj.secondaryCrime = key;
-                    }
-                }
+        _.each(_.keys(_.omit(dataObj, crimeFilter.concat(dataObj.primaryCrime))), function(key) {
+            //Find the crime with the second highest count
+            if (dataObj[key] > (dataObj[dataObj.secondaryCrime] || -Infinity)) {
+                dataObj.secondaryCrime = key;
             }
         });
         // Store the crime data in a hash table for easy retrieval later
         crimehash[dataObj.NEIGHBORHOOD]=dataObj;
 
     });
-    Object.keys(possibleCrimes).forEach(function(key){
-        if (key !== 'Primary Crime'){
-            var crime = possibleCrimes[key];
-            var min = Math.min.apply(Math, crimeRanges[crime]);
-            var max = Math.max.apply(Math, crimeRanges[crime]);
-            crimeRanges[crime] = { 'min': min, 'max': max };
-        }
+
+    // Convert the ranges into holding the max and the min
+    _.chain(crimeRanges).each(function(value, key){
+        crimeRanges[key] = { 'min': _.min(value), 'max': _.max(value)};
     });
-    Object.keys(possibleCrimes).forEach(function(key){generateScales(possibleCrimes[key])});
+
+    // Generate the scales for each crime type
+    _.each(crimeRanges, function(value, key){generateScales(key, value.min, value.max)});
 }
 // This data file is currently only for minneapolis
 d3.csv("data/ytd_sep_2014.csv", function(error, data) {parseCrimeData(error, data)});
@@ -185,7 +168,7 @@ function createDataSets(crimeranges) {
         highlightStrokecolors = _.shuffle(highlightFillcolors),
         crimestats = [];
     // Filter out meta-crimes
-    crimeranges = _.omit(crimeranges,metaCrimes);
+    crimeranges = _.omit(crimeranges,crimeFilter);
 
     _.each(crimeranges, function(value, key, list){
             fillcolors.push(getColor(key));
@@ -213,7 +196,7 @@ function createCharts(minmaxdata) {
         lcContext = document.getElementById("linechart").getContext("2d"),
         months = ["January", "February", "March", "April", "May", "June",
             "July", "August", "September", "October", "November", "December"],
-        crimes = _.keys(_.omit(possibleCrimes, metaCrimes));
+        crimes = _.keys(_.omit(possibleCrimes, crimeFilter));
 
     var barData = {
         labels: crimes,
