@@ -88,7 +88,8 @@ function normalizeColors(color) {
 }
 
 // Get an array of HSL colors with half luminosity
-var colors = d3.scale.category10().range().map(normalizeColors);
+var colors = d3.scale.category10().range().map(normalizeColors),
+    graphFillColors = _.map(_.values(_.omit(possibleCrimes,['Primary Crime','Secondary Crime'])), getColor);
 
 // Returns the stats associated with a particular hood and crime type, or
 // Returns the primary crime type is 'crimeType' == 'primaryCrime'
@@ -160,26 +161,27 @@ function style(feature) {
 // I actually need to stack the colors with the data
 function createDataSets(crimeranges) {
     var datasets = [],
-        fillcolors = [],
-        highlightFillcolors = ["black", "red", "yellow", "green",
-                                "blue", "orange", "gainsboro", "LawnGreen"],
-        strokecolors = [],
-        highlightStrokecolors = _.shuffle(highlightFillcolors),
+        //fillcolors = [],
+        //highlightFillcolors = ["black", "red", "yellow", "green",
+                                //"blue", "orange", "gainsboro", "LawnGreen"],
+        //strokecolors = [],
+        //highlightStrokecolors = _.shuffle(highlightFillcolors),
         crimestats = [];
-    // Filter out meta-crimes
+    // Filter out non-crimes
     crimeranges = _.omit(crimeranges,crimeFilter);
 
     _.each(crimeranges, function(value, key, list){
-            fillcolors.push(getColor(key));
+            //fillcolors.push(getColor(key));
             crimestats.push(value.max);
         });
-    strokecolors = _.shuffle(fillcolors);
+    //strokecolors = _.shuffle(fillcolors);
 
     datasets.push({
-        fillColor: fillcolors,
-        strokeColor: strokecolors,
-        highlightFill: highlightFillcolors,
-        highlightStroke: highlightStrokecolors,
+        fillColor: graphFillColors,
+        //fillColor: fillcolors,
+        //strokeColor: strokecolors,
+        //highlightFill: highlightFillcolors,
+        //highlightStroke: highlightStrokecolors,
         data: crimestats,
     })
     return datasets;
