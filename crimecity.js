@@ -229,111 +229,9 @@ function updateCharts(newData){
     bChart.update()
 }
 
-function createMap() {
-    var map = L.map('map').setView([44.973333, -93.266667], 12);
-    var info = L.control();
-    var crimeSelecter = L.control();
-    var topoLayer = new L.TopoJSON('', {
-        style: style,
-        onEachFeature: onEachFeature
-    });
-
-    // This is kind of busy, but OSM is cool and I like the map otherwise
-    // http://{s}.tile.osm.org/{z}/{x}/{y}.png
-    // This looks like it was printed dot-matrix style
-    // http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png
-    // This b/w tile set is pretty nice and should give context
-    // https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png
-    // XXX: If you don't have an internet connection, comment this block and reload
-    L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
-            maxZoom: 18,
-            attribution:
-            'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-            '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-            'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-            id: 'examples.map-20v6611k'
-            }).addTo(map);
-
-    function chooseDashColor(name) {
-        if (!info.clickedHood) {
-            return '#666'; // just hovering
-        } else if (info.clickedHood == name) { // if we've clicked and are over the click
-            return 'black'
-        } else { // we've clicked and aren't over the click
-            return 'blue';
-        }
-    }
-
-    function highlightFeature(e) {
-        var layer = e.target,
-            name = layer.feature.properties.name;
-
-        layer.setStyle({
-            weight: 5,
-            color: chooseDashColor(name),
-            dashArray: '',
-            fillOpacity: 0.7
-        });
-
-        if (!L.Browser.ie && !L.Browser.opera) {
-            layer.bringToFront();
-            if (info.clickedLayer)
-                info.clickedLayer.bringToFront();
-        }
-        // XXX this need to be moved out of highlightFeature
-        info.update(layer.feature.properties);
-    }
-
-    function setHoverDetails(e) {
-        var layer = e.target;
-        highlightFeature(e);
-        info.update(e.target.feature.properties);
-    }
-
-    function resetHoverDetails(e) {
-        resetHighlight(e.target);
-        info.update();
-    }
-
-    function resetHighlight(target) {
-        if (info.clickedHood !== target.feature.properties.name)
-            topoLayer.resetStyle(target);
-    }
-
-    // Save which neighborhood we clicked so we can do comparisons with moused over hoods
-    // This function should only be called on click for neighborhoods
-    function updateDOD(e) {
-        info.clickedHood = e.target.feature.properties.name;
-        if (info.clickedLayer)
-            resetHighlight(info.clickedLayer);
-        info.clickedLayer = e.target;
-        highlightFeature(e);
-        info.update();
-
-        updateCharts(crimehash[e.target.feature.properties.name.toUpperCase()]);
-    }
-
-    // Unset the clicked hood, since we have clicked the map
-    // This is called on map click, including double click and crime selection
-    function resetDOD() {
-        info.clickedHood = '';
-        if (info.clickedLayer)
-            resetHighlight(info.clickedLayer);
-        info.clickedLayer = '';
-        info.update();
-        resetCharts(crimeRanges);
-    }
-
-    map.on('click', resetDOD);
-
-    function onEachFeature(feature, layer) {
-        //layer.bindPopup(feature.properties.description);
-        layer.on({
-            mouseover: setHoverDetails,
-            mouseout: resetHoverDetails,
-            click: updateDOD
-        });
-    }
+function constructDoD(map){
+    var info = L.control(),
+        crimeSelecter = L.control();
 
     // method that we will use to update the control based on feature properties passed
     info.update = function (props) {
@@ -389,7 +287,6 @@ function createMap() {
         this.update();
         return this._div;
     };
-
     info.addTo(map);
 
     crimeSelecter.onAdd = function (map) {
@@ -397,14 +294,102 @@ function createMap() {
         return this._div;
     };
     crimeSelecter.addTo(map);
-    Object.keys(possibleCrimes).forEach(function(crime) {
+    _.each(_.keys(possibleCrimes), function(crime) {
         $('<input type="radio" id="' + crime
                 + '" name=crimetypes /> '+crime+'</br>').appendTo('.crimeSelecter');
     });
-    $( "input" ).on( "click", function() {
-        selectedCrimeType = possibleCrimes[$( "input:checked")[0].id];
-        topoLayer.eachLayer(function(l){topoLayer.resetStyle(l)});
-    });
+    return { info: info, crimeSelecter: crimeSelecter };
+}
+
+function constructTopoLayer(map, info){
+    var topoLayer = new L.TopoJSON('', {
+            style: style,
+            onEachFeature: onEachFeature
+        });
+    window.ccTopoLayer = topoLayer;
+
+    // XXX: This is for choosing the color of the border for a hood on hover/click
+    // This is
+    function chooseDashColor(name) {
+        if (!info.clickedHood) {
+            return '#666'; // just hovering
+        } else if (info.clickedHood == name) { // if we've clicked and are over the click
+            return 'black'
+        } else { // we've clicked and aren't over the click
+            return 'blue';
+        }
+    }
+
+    // XXX: I don't think this can be passed anything except 'e', so if I want to place this in a different
+    // scope where 'info' doesn't exist already I'll need to think about how I want to do that.
+    function highlightFeature(e) {
+        var layer = e.target,
+            name = layer.feature.properties.name;
+
+        layer.setStyle({
+            weight: 5,
+            color: chooseDashColor(name),
+            dashArray: '',
+            fillOpacity: 0.7
+        });
+
+        if (!L.Browser.ie && !L.Browser.opera) {
+            layer.bringToFront();
+            if (info.clickedLayer)
+                info.clickedLayer.bringToFront();
+        }
+    }
+
+    function setHoverDetails(e) {
+        var layer = e.target;
+        highlightFeature(e);
+        info.update(e.target.feature.properties);
+    }
+
+    function resetHoverDetails(e) {
+        resetHighlight(e.target);
+        info.update();
+    }
+
+    function resetHighlight(target) {
+        if (info.clickedHood !== target.feature.properties.name)
+            topoLayer.resetStyle(target);
+    }
+
+    // Save which neighborhood we clicked so we can do comparisons with moused over hoods
+    // This function should only be called on click for neighborhoods
+    function updateDOD(e) {
+        info.clickedHood = e.target.feature.properties.name;
+        if (info.clickedLayer)
+            resetHighlight(info.clickedLayer);
+        info.clickedLayer = e.target;
+        highlightFeature(e);
+        info.update(e.target.feature.properties);
+
+        updateCharts(crimehash[e.target.feature.properties.name.toUpperCase()]);
+    }
+
+    // Unset the clicked hood, since we have clicked the map
+    // This is called on map click, including double click and crime selection
+    function resetDOD() {
+        info.clickedHood = '';
+        if (info.clickedLayer)
+            resetHighlight(info.clickedLayer);
+        info.clickedLayer = '';
+        info.update();
+        resetCharts(crimeRanges);
+    }
+
+    map.on('click', resetDOD);
+
+    function onEachFeature(feature, layer) {
+        //layer.bindPopup(feature.properties.description);
+        layer.on({
+            mouseover: setHoverDetails,
+            mouseout: resetHoverDetails,
+            click: updateDOD
+        });
+    }
 
     function addTopoData(topoData){  
         topoLayer.addData(topoData);
@@ -413,6 +398,36 @@ function createMap() {
 
     $.getJSON('mpls.nbhoods.json')
         .done(addTopoData);
+    return topoLayer;
+}
+
+function createMap() {
+    var map = L.map('map').setView([44.973333, -93.266667], 12);
+        window.ccMap = map,
+        topoLayer = {};
+
+    // This is kind of busy, but OSM is cool and I like the map otherwise
+    // http://{s}.tile.osm.org/{z}/{x}/{y}.png
+    // This looks like it was printed dot-matrix style
+    // http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png
+    // This b/w tile set is pretty nice and should give context
+    // https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png
+    // XXX: If you don't have an internet connection, comment this block and reload
+    L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution:
+            'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+            '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+            'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+            id: 'examples.map-20v6611k'
+            }).addTo(map);
+
+    var infoObjs = constructDoD(map);
+    topoLayer = constructTopoLayer(map, infoObjs.info);
+    $( "input" ).on( "click", function() {
+        selectedCrimeType = possibleCrimes[$( "input:checked")[0].id];
+        topoLayer.eachLayer(function(l){topoLayer.resetStyle(l)});
+    });
 
     // Create the initial chart with an overview
     createCharts(crimeRanges);
