@@ -187,6 +187,13 @@ function createDataSets(crimeranges) {
     return datasets;
 }
 
+function resetCharts(crimeranges){
+    var maxes = {};
+    _.each(_.omit(crimeRanges, crimeFilter),
+            function(minmax, crime, list){maxes[crime]=minmax.max});
+    updateCharts(maxes);
+}
+
 // This should be passed a data object, I suppose
 // XXX: Maybe this should show the totals for the city when no neighborhood is clicked?
 function createCharts(minmaxdata) {
@@ -207,6 +214,19 @@ function createCharts(minmaxdata) {
     window.barChart = new Chart(bcContext).Bar(barData);
     //window.lineChart = new Chart(lcContext).Line(lineData, options);
 
+}
+
+// update the charts with new values. Accepts crimehash objects.
+function updateCharts(newData){
+    var bChart = window.barChart,
+        bars = bChart.datasets[0].bars;
+        //lChart = window.lineChart;
+
+    _.each(bars, function(barObj){
+        barObj.value = newData[possibleCrimes[barObj.label]];
+    });
+
+    bChart.update()
 }
 
 function createMap() {
@@ -289,6 +309,8 @@ function createMap() {
         info.clickedLayer = e.target;
         highlightFeature(e);
         info.update();
+
+        updateCharts(crimehash[e.target.feature.properties.name.toUpperCase()]);
     }
 
     // Unset the clicked hood, since we have clicked the map
@@ -299,6 +321,7 @@ function createMap() {
             resetHighlight(info.clickedLayer);
         info.clickedLayer = '';
         info.update();
+        resetCharts(crimeRanges);
     }
 
     map.on('click', resetDOD);
