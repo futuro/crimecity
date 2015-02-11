@@ -21,7 +21,7 @@ var crimeRanges = {},
     cRangesDeferred = new $.Deferred().done(createCharts);
 
 _.chain(possibleCrimes).omit(["Primary Crime","Secondary Crime"]).values().each(function(value){
-    crimeRanges[value]=[]
+    crimeRanges[value]=[];
 });
 
 function generateScales(name, min, max) {
@@ -78,10 +78,10 @@ function parseCrimeData(error, data) {
     cRangesDeferred.resolve(crimeRanges);
 
     // Generate the scales for each crime type
-    _.each(crimeRanges, function(value, key){generateScales(key, value.min, value.max)});
+    _.each(crimeRanges, function(value, key){generateScales(key, value.min, value.max);});
 }
 // This data file is currently only for minneapolis
-d3.csv("data/ytd_sep_2014.csv", function(error, data) {parseCrimeData(error, data)});
+d3.csv("data/ytd_sep_2014.csv", function(error, data) {parseCrimeData(error, data);});
 
 // Set the luminosity of 'color' to 0.5 for accurate representation
 function normalizeColors(color) {
@@ -142,7 +142,7 @@ function getAndScaleColor(crimetype, name) {
 // Since the primary crime type is brown, grey dashes don't look that great, so use white instead
 // This function isn't that useful if the primary crime type stops being brown
 function getDashColors() {
-    return selectedCrimeType == 'primaryCrime' ? 'white' : 'grey'
+    return selectedCrimeType == 'primaryCrime' ? 'white' : 'grey';
 }
 
 // Define the style for the neighborhood objects
@@ -185,14 +185,14 @@ function createDataSets(crimeranges) {
         //highlightFill: highlightFillcolors,
         //highlightStroke: highlightStrokecolors,
         data: crimestats,
-    })
+    });
     return datasets;
 }
 
 function resetCharts(crimeranges){
     var maxes = {};
     _.each(_.omit(crimeRanges, crimeFilter),
-            function(minmax, crime, list){maxes[crime]=minmax.max});
+            function(minmax, crime, list){maxes[crime]=minmax.max;});
     updateCharts(maxes);
 }
 
@@ -211,7 +211,7 @@ function createCharts(minmaxdata) {
     var barData = {
         labels: crimes,
         datasets: createDataSets(minmaxdata)
-    }
+    };
 
     window.barChart = new Chart(bcContext).Bar(barData);
     //window.lineChart = new Chart(lcContext).Line(lineData, options);
@@ -228,7 +228,7 @@ function updateCharts(newData){
         barObj.value = newData[possibleCrimes[barObj.label]];
     });
 
-    bChart.update()
+    bChart.update();
 }
 
 function constructDoD(map){
@@ -248,8 +248,9 @@ function constructDoD(map){
             Object.keys(possibleCrimes).forEach(function(crime) {
                 var crimeType = possibleCrimes[crime],
                     crimeDetails = getCrimeDetails(this.clickedHood, crimeType);
-                hoodInfo = hoodInfo + '<span class=crimename>' +crime +'</span>: <span class=crimedets>'
-                    + crimeDetails + ';;hover' + crime + ';;</span></br>';
+                hoodInfo = hoodInfo + '<span class=crimename>' +crime+
+                    '</span>: <span class=crimedets>' + crimeDetails +
+                    ';;hover' + crime + ';;</span></br>';
             }, this);
             hoodInfo = hoodInfo + '</div>';
         }
@@ -264,8 +265,8 @@ function constructDoD(map){
                 Object.keys(possibleCrimes).forEach(function(crime) {
                     var crimeType = possibleCrimes[crime],
                         crimeDetails = getCrimeDetails(name, crimeType);
-                    hoodInfo = hoodInfo + '<span class=crimename>' + crime +'</span>: <span class=crimedets>'
-                        + crimeDetails + '</span></br>';
+                    hoodInfo = hoodInfo + '<span class=crimename>' +crime+
+                        '</span>: <span class=crimedets>' + crimeDetails + '</span></br>';
                 }, this);
             } else if (this.clickedHood !== name) {
                 hoodInfo = hoodInfo.replace(';;hoodname;;',
@@ -284,21 +285,20 @@ function constructDoD(map){
         this._div.innerHTML = hoodInfo;
     };
 
-    info.onAdd = function (map) {
+    info.onAdd = function () {
         this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
         this.update();
         return this._div;
     };
     info.addTo(map);
 
-    crimeSelecter.onAdd = function (map) {
+    crimeSelecter.onAdd = function () {
         this._div = L.DomUtil.create('div', 'crimeSelecter');
         return this._div;
     };
     crimeSelecter.addTo(map);
     _.each(_.keys(possibleCrimes), function(crime) {
-        $('<input type="radio" id="' + crime
-                + '" name=crimetypes /> '+crime+'</br>').appendTo('.crimeSelecter');
+        $('<input type="radio" id="'+crime+'" name=crimetypes /> '+crime+'</br>').appendTo('.crimeSelecter');
     });
     return { info: info, crimeSelecter: crimeSelecter };
 }
@@ -316,7 +316,7 @@ function constructTopoLayer(map, info){
         if (!info.clickedHood) {
             return '#666'; // just hovering
         } else if (info.clickedHood == name) { // if we've clicked and are over the click
-            return 'black'
+            return 'black';
         } else { // we've clicked and aren't over the click
             return 'blue';
         }
@@ -404,9 +404,9 @@ function constructTopoLayer(map, info){
 }
 
 function createMap() {
-    var map = L.map('map').setView([44.973333, -93.266667], 12);
-        window.ccMap = map,
+    var map = L.map('map').setView([44.973333, -93.266667], 12),
         topoLayer = {};
+        window.ccMap = map;
 
     // This is kind of busy, but OSM is cool and I like the map otherwise
     // http://{s}.tile.osm.org/{z}/{x}/{y}.png
@@ -428,7 +428,7 @@ function createMap() {
     topoLayer = constructTopoLayer(map, infoObjs.info);
     $( "input" ).on( "click", function() {
         selectedCrimeType = possibleCrimes[$( "input:checked")[0].id];
-        topoLayer.eachLayer(function(l){topoLayer.resetStyle(l)});
+        topoLayer.eachLayer(function(l){topoLayer.resetStyle(l);});
     });
 }
 // Make sure that the DOM is available, then do map related stuff
