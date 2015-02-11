@@ -17,7 +17,8 @@ var crimeFilter = ['NEIGHBORHOOD', 'Total', 'primaryCrime', 'secondaryCrime', 'P
 var selectedCrimeType = 'primaryCrime';
 var crimeScales = {};
 var crimehash = {};
-var crimeRanges = {};
+var crimeRanges = {},
+    cRangesDeferred = new $.Deferred().done(createCharts);
 
 _.chain(possibleCrimes).omit(["Primary Crime","Secondary Crime"]).values().each(function(value){
     crimeRanges[value]=[]
@@ -74,6 +75,7 @@ function parseCrimeData(error, data) {
     _.chain(crimeRanges).each(function(value, key){
         crimeRanges[key] = { 'min': _.min(value), 'max': _.max(value)};
     });
+    cRangesDeferred.resolve(crimeRanges);
 
     // Generate the scales for each crime type
     _.each(crimeRanges, function(value, key){generateScales(key, value.min, value.max)});
@@ -428,9 +430,6 @@ function createMap() {
         selectedCrimeType = possibleCrimes[$( "input:checked")[0].id];
         topoLayer.eachLayer(function(l){topoLayer.resetStyle(l)});
     });
-
-    // Create the initial chart with an overview
-    createCharts(crimeRanges);
 }
 // Make sure that the DOM is available, then do map related stuff
 $( document ).ready(createMap);
