@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<title>Crimecity!</title>
+		<link rel="stylesheet" href="libs/leaflet.css" />
+		<style>
+			body {
+				padding: 0;
+				margin: 0;
+			}
+			html, body, #map {
+				height: 100%;
+			}
+			#map {
+				width: 50%;
+				float: right;
+				position: relative;
+			}
+			.info, .crimeSelecter {
+				padding: 6px 8px;
+				font: 14px/16px Arial, Helvetica, sans-serif;
+				background: white;
+				background: rgba(255,255,255,0.8);
+				box-shadow: 0 0 15px rgba(0,0,0,0.2);
+				border-radius: 5px;
+			}
+			.info h4 {
+				margin: 0 0 5px;
+				color: #777;
+			}
+			.graphs{
+				width: 50%;
+				float: left;
+				position: relative;
+			}
+			#barchart {
+				position: relative;
+				width: 100%;
+				top: 0;
+			}
+			#linechart {
+				position: relative;
+				width: 100%;
+				bottom: 0;
+			}	
+			.scndhd {
+				color: blue;
+			}
+			#shName{
+				font-weight: bold;
+				text-align: center;
+			}
+			.crimename {
+				font-weight: bold;
+				float: left;
+			}
+			.crimedets {
+				float: right;
+			}
+		</style>
+	</head>
+	<body>
+		<script src="libs/leaflet.js"></script>
+		<script src="libs/d3.min.js"></script>
+		<script src="libs/topojson.v1.min.js"></script>
+		<script src="libs/jquery-2.1.1.min.js"></script>
+		<script src="libs/L.TopoJSON.js"></script>
+		<script src="crimecity.js"></script>
+		
+		<div id="map"></div>
+
+		<div class="graphs">
+			<canvas id="barchart"></canvas>
+			<canvas id="linechart"></canvas>
+		</div>
+
+	</body>
+</html>
+
