@@ -13,12 +13,12 @@ var possibleCrimes = {
     "Total"              : "Total",
 };
 // These exist for easy filtering with _.omit
-var crimeFilter = ['NEIGHBORHOOD', 'Total', 'primaryCrime', 'secondaryCrime', 'Primary Crime', 'Secondary Crime'];
-var selectedCrimeType = 'primaryCrime';
-var crimeScales = {};
-var crimehash = {};
-var crimeRanges = {},
-    cRangesDeferred = new $.Deferred().done(createCharts);
+var crimeFilter = ['NEIGHBORHOOD', 'Total', 'primaryCrime', 'secondaryCrime', 'Primary Crime', 'Secondary Crime'],
+    selectedCrimeType = 'primaryCrime',
+    crimeScales = {},
+    crimehash = {},
+    crimeRanges = {},
+    cRangesDeferred = new $.Deferred();
 
 _.chain(possibleCrimes).omit(["Primary Crime","Secondary Crime"]).values().each(function(value){
     crimeRanges[value]=[];
@@ -105,14 +105,14 @@ function getCrimeDetails(name, crimeType) {
 // the primary crime out from the hash if we're showing the primary crime. To cleanup
 // other code I've written this function
 function getDesiredCrimeName(name, crimeType) {
-    return ( crimeType == 'primaryCrime' || crimeType == 'secondaryCrime') ?
+    return ( crimeType === 'primaryCrime' || crimeType === 'secondaryCrime') ?
         getCrimeDetails(name, crimeType) :
         crimeType;
 }
 
 // Scale the color based on the relative amount of a particular crime in this neighborhood
 function scaleColor(crimetype, color, name){
-    if (selectedCrimeType == 'primaryCrime' || selectedCrimeType == 'secondaryCrime') {
+    if (selectedCrimeType === 'primaryCrime' || selectedCrimeType === 'secondaryCrime') {
         return color;
     }
     var scale = crimeScales[crimetype],
@@ -123,14 +123,14 @@ function scaleColor(crimetype, color, name){
 
 // Retrieve the HSL color object based on the short form for the crime type
 function getColor(crimetype) {
-    return crimetype == "Homicide"   ? colors[0] :
-        crimetype == "Rape"       ? colors[1] :
-        crimetype == "Robbery"    ? colors[2] :
-        crimetype == "AggAssault" ? colors[3] :
-        crimetype == "Burglary"   ? colors[4] :
-        crimetype == "Larceny"    ? colors[5] :
-        crimetype == "AutoTheft"  ? colors[6] :
-        crimetype == "Arson"      ? colors[7] :
+    return crimetype === "Homicide"   ? colors[0] :
+        crimetype === "Rape"       ? colors[1] :
+        crimetype === "Robbery"    ? colors[2] :
+        crimetype === "AggAssault" ? colors[3] :
+        crimetype === "Burglary"   ? colors[4] :
+        crimetype === "Larceny"    ? colors[5] :
+        crimetype === "AutoTheft"  ? colors[6] :
+        crimetype === "Arson"      ? colors[7] :
         colors[8];
 }
 
@@ -142,7 +142,7 @@ function getAndScaleColor(crimetype, name) {
 // Since the primary crime type is brown, grey dashes don't look that great, so use white instead
 // This function isn't that useful if the primary crime type stops being brown
 function getDashColors() {
-    return selectedCrimeType == 'primaryCrime' ? 'white' : 'grey';
+    return selectedCrimeType === 'primaryCrime' ? 'white' : 'grey';
 }
 
 // Define the style for the neighborhood objects
@@ -172,7 +172,7 @@ function createDataSets(crimeranges) {
     // Filter out non-crimes
     crimeranges = _.omit(crimeranges,crimeFilter);
 
-    _.each(crimeranges, function(value, key, list){
+    _.each(crimeranges, function(value){
             //fillcolors.push(getColor(key));
             crimestats.push(value.max);
         });
@@ -187,13 +187,6 @@ function createDataSets(crimeranges) {
         data: crimestats,
     });
     return datasets;
-}
-
-function resetCharts(crimeranges){
-    var maxes = {};
-    _.each(_.omit(crimeRanges, crimeFilter),
-            function(minmax, crime, list){maxes[crime]=minmax.max;});
-    updateCharts(maxes);
 }
 
 // This should be passed a data object, I suppose
@@ -217,6 +210,7 @@ function createCharts(minmaxdata) {
     //window.lineChart = new Chart(lcContext).Line(lineData, options);
 
 }
+cRangesDeferred.done(createCharts);
 
 // update the charts with new values. Accepts crimehash objects.
 function updateCharts(newData){
@@ -229,6 +223,13 @@ function updateCharts(newData){
     });
 
     bChart.update();
+}
+
+function resetCharts(crimeranges){
+    var maxes = {};
+    _.each(_.omit(crimeranges, crimeFilter),
+            function(minmax, crime){maxes[crime]=minmax.max;});
+    updateCharts(maxes);
 }
 
 function constructDoD(map){
@@ -315,7 +316,7 @@ function constructTopoLayer(map, info){
     function chooseDashColor(name) {
         if (!info.clickedHood) {
             return '#666'; // just hovering
-        } else if (info.clickedHood == name) { // if we've clicked and are over the click
+        } else if (info.clickedHood === name) { // if we've clicked and are over the click
             return 'black';
         } else { // we've clicked and aren't over the click
             return 'blue';
@@ -337,13 +338,11 @@ function constructTopoLayer(map, info){
 
         if (!L.Browser.ie && !L.Browser.opera) {
             layer.bringToFront();
-            if (info.clickedLayer)
-                info.clickedLayer.bringToFront();
+            if (info.clickedLayer) {info.clickedLayer.bringToFront();}
         }
     }
 
     function setHoverDetails(e) {
-        var layer = e.target;
         highlightFeature(e);
         info.update(e.target.feature.properties);
     }
@@ -355,7 +354,7 @@ function constructTopoLayer(map, info){
 
     function resetHighlight(target) {
         if (info.clickedHood !== target.feature.properties.name)
-            topoLayer.resetStyle(target);
+            {topoLayer.resetStyle(target);}
     }
 
     // Save which neighborhood we clicked so we can do comparisons with moused over hoods
@@ -363,7 +362,7 @@ function constructTopoLayer(map, info){
     function updateDOD(e) {
         info.clickedHood = e.target.feature.properties.name;
         if (info.clickedLayer)
-            resetHighlight(info.clickedLayer);
+            {resetHighlight(info.clickedLayer);}
         info.clickedLayer = e.target;
         highlightFeature(e);
         info.update(e.target.feature.properties);
@@ -376,7 +375,7 @@ function constructTopoLayer(map, info){
     function resetDOD() {
         info.clickedHood = '';
         if (info.clickedLayer)
-            resetHighlight(info.clickedLayer);
+            {resetHighlight(info.clickedLayer);}
         info.clickedLayer = '';
         info.update();
         resetCharts(crimeRanges);
