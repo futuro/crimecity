@@ -233,8 +233,8 @@ function resetCharts(crimeranges){
 }
 
 function constructDoD(map){
-    var info = L.control(),
-        crimeSelecter = L.control();
+    var info = L.control();
+        //crimeSelecter = L.control();
 
     // method that we will use to update the control based on feature properties passed
     info.update = function (props) {
@@ -293,15 +293,21 @@ function constructDoD(map){
     };
     info.addTo(map);
 
-    crimeSelecter.onAdd = function () {
-        this._div = L.DomUtil.create('div', 'crimeSelecter');
-        return this._div;
-    };
-    crimeSelecter.addTo(map);
-    _.each(_.keys(possibleCrimes), function(crime) {
-        $('<input type="radio" id="'+crime+'" name=crimetypes /> '+crime+'</br>').appendTo('.crimeSelecter');
+    //crimeSelecter.onAdd = function () {
+        //this._div = L.DomUtil.create('div', 'crimeSelecter');
+        //return this._div;
+    //};
+    //crimeSelecter.addTo(map);
+    _.each(possibleCrimes, function(shorthand, longhand) {
+        //$('<input type="radio" id="'+crime+'" name=crimetypes /> '+crime+'</br>').appendTo('.crimeSelecter');
+        $('<li class="btn btn-primary '+shorthand+'">'+
+                '<input type="radio" id="'+shorthand+'" name=crimetypes autocomplete="off"/> '+longhand+
+                '</li>').appendTo('.btn-group');
     });
-    return { info: info, crimeSelecter: crimeSelecter };
+    $( ".primaryCrime" ).toggleClass('active');
+    $( 'input#primaryCrime' ).prop('checked', true);
+    //return { info: info, crimeSelecter: crimeSelecter };
+    return { info: info };
 }
 
 function constructTopoLayer(map, info){

@@ -51,3 +51,6 @@ html, body, #map {
 .crimedets {
 	float: right;
 }
+.btn-primary {
+	margin-top: 8px;
+}
