@@ -28,6 +28,11 @@ function generateScales(name, min, max) {
     crimeScales[name] = d3.scale.linear().domain([min,max]).range([1,0]);
 }
 
+function showCrime(event){
+    selectedCrimeType = event.currentTarget.childNodes[0].id;
+    window.ccTopoLayer.eachLayer(function(l){window.ccTopoLayer.resetStyle(l);});
+}
+
 // XXX: d.csv is async, so putting this at the top of the file is only hoping
 // that the data is smallest enough that the data will be available once the dom is available.
 // A better method should be found, I think, to ensure that the crime data is available before the map
@@ -305,7 +310,8 @@ function constructDoD(map){
                 '</li>').appendTo('.btn-group');
     });
     $( ".primaryCrime" ).toggleClass('active');
-    $( 'input#primaryCrime' ).prop('checked', true);
+    $( ".btn-primary" ).on("click", showCrime);
+    //$( 'input#primaryCrime' ).prop('checked', true);
     //return { info: info, crimeSelecter: crimeSelecter };
     return { info: info };
 }
@@ -431,10 +437,6 @@ function createMap() {
 
     var infoObjs = constructDoD(map);
     topoLayer = constructTopoLayer(map, infoObjs.info);
-    $( "input" ).on( "click", function() {
-        selectedCrimeType = possibleCrimes[$( "input:checked")[0].id];
-        topoLayer.eachLayer(function(l){topoLayer.resetStyle(l);});
-    });
 }
 // Make sure that the DOM is available, then do map related stuff
 $( document ).ready(createMap);
