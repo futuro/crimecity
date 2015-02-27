@@ -305,9 +305,9 @@ function constructDoD(map){
     //crimeSelecter.addTo(map);
     _.each(possibleCrimes, function(shorthand, longhand) {
         //$('<input type="radio" id="'+crime+'" name=crimetypes /> '+crime+'</br>').appendTo('.crimeSelecter');
-        $('<label class="btn btn-primary '+shorthand+'">'+
-                '<input type="radio" id="'+shorthand+'" name=crimetypes autocomplete="off"> '+longhand+
-                '</label>').appendTo('.dropdown-menu');
+        $('<li><label class="btn btn-primary '+shorthand+'">'+
+                '<input type="radio" id="'+shorthand+'" name=crimetypes autocomplete="off"/> '+longhand+
+                '</label></li>').appendTo('.dropdown-menu');
     });
     $( ".primaryCrime" ).toggleClass('active');
     $( ".btn-primary" ).on("click", showCrime);
