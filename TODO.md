@@ -1,7 +1,9 @@
 Core
 ====
-Get the radio buttons in the 'Select Crime' drop down to look like plain buttons and fill the whole
+1. Get the radio buttons in the 'Select Crime' drop down to look like plain buttons and fill the whole
 width of the drop down.
+2. Expand line graph in Graph.js in a similar manner to how I expanded the bar graph, allowing
+	 setting colors per data point as opposed to per data set.
 
 Misc
 ====
