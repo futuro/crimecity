@@ -3,6 +3,12 @@ crimecity
 
 Visualizing Crime Statistics in a Geographical Context
 
+This project is still a work in progress, and is the result of teaching myself javascript
+and html and the rest, so there are going to be a lot of rough edges, at least visually
+speaking, while my skills grow.
+
+Pull requests welcome.
+
 Using
 =====
 
