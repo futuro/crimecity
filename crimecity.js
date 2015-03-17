@@ -28,8 +28,8 @@ function generateScales(name, min, max) {
     crimeScales[name] = d3.scale.linear().domain([min,max]).range([1,0]);
 }
 
-function showCrime(event){
-    selectedCrimeType = event.currentTarget.childNodes[0].id;
+function showCrime(){
+    selectedCrimeType = possibleCrimes[$('.selectpicker option:selected').val()];
     window.ccTopoLayer.eachLayer(function(l){window.ccTopoLayer.resetStyle(l);});
 }
 
@@ -298,20 +298,12 @@ function constructDoD(map){
     };
     info.addTo(map);
 
-    //crimeSelecter.onAdd = function () {
-        //this._div = L.DomUtil.create('div', 'crimeSelecter');
-        //return this._div;
-    //};
-    //crimeSelecter.addTo(map);
     _.each(possibleCrimes, function(shorthand, longhand) {
-        //$('<input type="radio" id="'+crime+'" name=crimetypes /> '+crime+'</br>').appendTo('.crimeSelecter');
-        $('<li><label class="btn btn-primary '+shorthand+'">'+
-                '<div type="radio" id="'+shorthand+'" name=crimetypes autocomplete="off"/> '+longhand+
-                '</label></li>').appendTo('.dropdown-menu');
+        $('<option class="crimebtns '+shorthand+'">'+longhand+'</option>').appendTo('.selectpicker');
     });
-    $( ".primaryCrime" ).toggleClass('active');
-    $( ".btn-primary" ).on("click", showCrime);
-    //$( 'input#primaryCrime' ).prop('checked', true);
+
+    $('.selectpicker').selectpicker();
+    $('.selectpicker').on('change', showCrime);
     //return { info: info, crimeSelecter: crimeSelecter };
     return { info: info };
 }

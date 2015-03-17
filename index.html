@@ -37,7 +37,7 @@
 		<nav class="navbar navbar-default">
 			<div class="container">
 				<div class="navbar-header">
-					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
 						<span class="sr-only">Toggle navigation</span>
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
@@ -45,19 +45,12 @@
 					</button>
 					<a class="navbar-brand" href="http://localhost:8888/#">Crime City</a>
 				</div>
-				<div class="navbar-collapse collapse">
-					<ul class="nav navbar-nav">
-
-						<div class="dropdown">
-							<button class="btn btn-primary dropdown-toggle btn-group" type="button" data-toggle="dropdown" aria-expanded="false">
-								Select Crime <span class="caret"></span>
-							</button>
-							<ul class="dropdown-menu" role="menu" data-toggle="buttons">
-								<!--<div class="btn-group crimebtns" data-toggle="buttons">-->
-								<!--The radio buttons are added programmatically once we know what they are.-->
-								<!--</div>-->
-							</ul>
-						</div>
+				<div id='navbar' class="navbar-collapse collapse">
+					<ul class="nav navbar-nav navbar-right">
+						<li>
+							<select class="selectpicker" data-style='btn-info' data-live-search='true'>
+							</select>
+						</li>
 					</ul>
 				</div><!--/.nav-collapse -->
 			</div>
