@@ -54,3 +54,6 @@ html, body, #map {
 .navbar {
 	margin-bottom: 0px !important;
 }
+li.crimeselecter {
+	margin-top: 7px;
+}
